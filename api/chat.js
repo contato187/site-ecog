@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
 export default async function handler(req, res) {
-  // CORS - Permitir conexões do seu próprio site
+  // Configuração de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,34 +8,44 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  try {
-    // Garantir que a query chegue corretamente
-    const query = req.body.query;
-    
-    // Na Vercel, usamos process.env para ler a variável de ambiente
-    const apiKey = process.env.VITE_GEMINI_API_KEY;
+  const { query } = req.body;
+  const apiKey = process.env.VITE_GEMINI_API_KEY;
 
-    if (!apiKey) {
-      console.error("Chave de API não encontrada no servidor.");
-      return res.status(500).json({ text: "Erro interno: Chave de API não configurada." });
+  if (!apiKey) {
+    return res.status(500).json({ text: "Chave não configurada no servidor." });
+  }
+
+  try {
+    // Chamada DIRETA para a API do Google (sem depender de biblioteca)
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Você é o NeuroMentor AI da clínica ECOG em Londrina. 
+              Responda sobre neuromodulação de forma científica e empática. 
+              Pergunta do paciente: ${query}`
+            }]
+          }]
+        })
+      }
+    );
+
+    const data = await response.json();
+    
+    if (data.error) {
+      console.error("Erro do Google:", data.error);
+      return res.status(500).json({ text: "Erro na comunicação com o cérebro da IA.", details: data.error.message });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `Você é o NeuroMentor AI da clínica ECOG em Londrina. 
-    Responda sobre neuromodulação (TMS, tDCS, Neurofeedback) de forma científica e acolhedora. 
-    Não faça diagnósticos. Pergunta: ${query}`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    return res.status(200).json({ text });
+    const aiResponse = data.candidates[0].content.parts[0].text;
+    return res.status(200).json({ text: aiResponse });
 
   } catch (error) {
-    console.error("Erro no processamento da IA:", error);
-    // Retorna o erro detalhado para ajudar no diagnóstico final
-    return res.status(500).json({ text: "Tive um lapso neural no processamento.", details: error.message });
+    console.error("Erro fatal na API:", error);
+    return res.status(500).json({ text: "Tive um lapso neural no servidor.", error: error.message });
   }
 }
