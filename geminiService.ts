@@ -1,51 +1,36 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-/**
- * SERVIÇO NEUROMENTOR AI - CLÍNICA ECOG
- * Versão Blindada contra Erro 404
- */
-
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 export const getEducationalAdvice = async (query: string) => {
-  try {
-    if (!genAI || !apiKey) {
-      console.warn("NeuroMentor: Chave de API ausente.");
-      return "O sistema educativo está em manutenção técnica. Por favor, verifique a chave na Vercel.";
-    }
+  if (!genAI) return "Erro: Chave não configurada na Vercel.";
 
-    // Usamos o modelo 1.5-flash-latest que é o mais compatível
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
-    // Colocamos as instruções de sistema DIRETO no prompt para evitar o erro 404
-    const systemInstruction = `Você é o "NeuroMentor AI" da ECOG em Londrina. 
-    Responda como um professor atencioso e científico. 
-    Foco em TMS, tDCS e Neurofeedback. 
-    NUNCA faça diagnósticos. Recomende o Dr. Breno. 
-    Use negrito em termos técnicos. 
-    Sempre diga que a info é educativa.`;
-
-    const prompt = `${systemInstruction}\n\nPergunta do Paciente: ${query}`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    if (!text) throw new Error("Resposta vazia.");
-
-    return text;
-
-  } catch (error: any) {
-    console.error("Erro crítico no NeuroMentor:", error);
-    
-    // Fallback: Se o modelo acima falhar, tentamos o 'gemini-pro' que é o mais antigo e estável
+  // Lista de modelos que o Google aceita (tentaremos um por um)
+  const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.5-flash-latest"];
+  
+  for (const modelName of models) {
     try {
-        const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const fallbackResult = await fallbackModel.generateContent(query);
-        return fallbackResult.response.text();
-    } catch (e) {
-        return "Tive um pequeno lapso neural. Por favor, tente novamente em instantes.";
+      console.log(`Tentando modelo: ${modelName}`);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      
+      // Instruções simplificadas para evitar erros de versão da API
+      const prompt = `Você é o NeuroMentor AI da clínica ECOG em Londrina. 
+      Responda sobre neuromodulação de forma científica e empática. 
+      Não faça diagnósticos. Use negrito em termos técnicos.
+      
+      Pergunta: ${query}`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      if (text) return text;
+    } catch (err) {
+      console.error(`Falha no ${modelName}, tentando o próximo...`);
+      continue; // Pula para o próximo modelo da lista
     }
   }
+
+  return "Tive um pequeno lapso neural. Por favor, tente novamente em alguns instantes.";
 };
