@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -19,6 +18,12 @@ const VideoGenerator: React.FC = () => {
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const [history, setHistory] = useState<SimulationRecord[]>([]);
   
+  // --- SEGURANÇA ---
+  const [passcode, setPasscode] = useState("");
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const ADMIN_KEY = "1987"; // Altere para sua senha de preferência
+  // -----------------
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,10 +58,13 @@ const VideoGenerator: React.FC = () => {
     setImage(record.imagePreview);
     setPrompt(record.prompt);
     if (record.videoUrl) setVideoUrl(record.videoUrl);
-    window.scrollTo({ top: document.getElementById('experience')?.offsetTop, behavior: 'smooth' });
   };
 
   const generateVideo = async () => {
+    if (!isUnlocked) {
+      alert("Acesso restrito ao corpo clínico da ECOG.");
+      return;
+    }
     if (!image) return;
     
     setIsGenerating(true);
@@ -64,30 +72,25 @@ const VideoGenerator: React.FC = () => {
     setStatus('Conectando ao núcleo de processamento Veo...');
 
     try {
-      // @ts-ignore
-      if (!(await window.aistudio.hasSelectedApiKey())) {
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-      }
-
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const base64Data = image.split(',')[1];
+      // Usando a chave que configuramos na Vercel
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      const genAI = new GoogleGenerativeAI(apiKey);
       
+      const base64Data = image.split(',')[1];
       setStatus('Sintetizando referências visuais...');
       
-      let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: prompt,
-        image: {
-          imageBytes: base64Data,
-          mimeType: 'image/png',
-        },
-        config: {
-          numberOfVideos: 1,
-          resolution: '720p',
-          aspectRatio: aspectRatio
+      // Chamada para o modelo Veo (via biblioteca generativa)
+      const model = genAI.getGenerativeModel({ model: "veo-3.1-fast-generate-preview" });
+      
+      const result = await (model as any).generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: "image/png"
+          }
         }
-      });
+      ]);
 
       const loadingMessages = [
         'Mapeando volumetria da sala...',
@@ -96,42 +99,32 @@ const VideoGenerator: React.FC = () => {
         'Renderizando texturas...',
         'Finalizando dinâmica cinematográfica...'
       ];
-      let messageIndex = 0;
+      
+      let msgIdx = 0;
+      const interval = setInterval(() => {
+        setStatus(loadingMessages[msgIdx % loadingMessages.length]);
+        msgIdx++;
+      }, 5000);
 
-      while (!operation.done) {
-        setStatus(loadingMessages[messageIndex % loadingMessages.length]);
-        messageIndex++;
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        operation = await ai.operations.getVideosOperation({ operation: operation });
-      }
+      const response = await result.response;
+      clearInterval(interval);
+      
+      const generatedUrl = response.candidates[0].content.parts[0].text; // Ajuste dependendo da resposta do Veo
 
-      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      if (downloadLink) {
-        setStatus('Transferindo dados neurais...');
-        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-        if (!response.ok) throw new Error('Falha no download do vídeo');
-        
-        const blob = await response.blob();
-        const finalUrl = URL.createObjectURL(blob);
-        setVideoUrl(finalUrl);
-        
+      if (generatedUrl) {
+        setVideoUrl(generatedUrl);
         saveToHistory({
           id: Math.random().toString(36).substr(2, 9),
           timestamp: Date.now(),
           prompt: prompt,
           imagePreview: image,
-          videoUrl: finalUrl
+          videoUrl: generatedUrl
         });
-
         setStatus('Animação concluída.');
       }
     } catch (error: any) {
       console.error(error);
-      if (error.message?.includes("Requested entity was not found")) {
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-      }
-      setStatus('Erro na síntese. Verifique sua chave de API e conexão.');
+      setStatus('Erro na síntese. Verifique faturamento e conexão.');
     } finally {
       setIsGenerating(false);
     }
@@ -181,7 +174,7 @@ const VideoGenerator: React.FC = () => {
             Laboratório <span className="text-ecog-folha">Veo</span>
           </h3>
           <p className="text-ecog-mar text-xs font-light mb-8 leading-relaxed">
-            Retome simulações anteriores ou crie novas dinâmicas neurais a partir de fotos da clínica.
+            Área restrita para simulações clínicas avançadas.
           </p>
 
           <div className="space-y-6">
@@ -196,7 +189,7 @@ const VideoGenerator: React.FC = () => {
                   <img src={image} alt="Referência" className="w-full h-full object-cover opacity-40" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-ecog-espaco/40 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity">
                     <i className="fa-solid fa-camera-rotate text-white text-3xl mb-2"></i>
-                    <span className="text-white font-bold text-[10px] uppercase tracking-widest">Alterar Referência</span>
+                    <span className="text-white font-bold text-[10px] uppercase tracking-widest">Alterar Foto</span>
                   </div>
                 </>
               ) : (
@@ -219,20 +212,35 @@ const VideoGenerator: React.FC = () => {
               />
             </div>
 
+            {/* CAMPO DE SENHA */}
+            {!isUnlocked && (
+              <div className="space-y-2">
+                <label className="text-[8px] text-white/40 uppercase tracking-widest">Chave de Ativação do Corpo Clínico</label>
+                <input 
+                  type="password"
+                  placeholder="Digite a senha para liberar o Veo..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs"
+                  onChange={(e) => {
+                    if(e.target.value === ADMIN_KEY) setIsUnlocked(true);
+                  }}
+                />
+              </div>
+            )}
+
             <button
               onClick={generateVideo}
-              disabled={!image || isGenerating}
-              className="w-full bg-ecog-folha hover:bg-ecog-lima text-ecog-espaco font-black py-5 rounded-full transition-all shadow-xl uppercase tracking-[0.2em] text-[10px] disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-3 active:scale-95"
+              disabled={!image || isGenerating || !isUnlocked}
+              className="w-full bg-ecog-folha hover:bg-ecog-lima text-ecog-espaco font-black py-5 rounded-full transition-all shadow-xl uppercase tracking-[0.2em] text-[10px] disabled:opacity-20 disabled:cursor-not-allowed group flex items-center justify-center gap-3 active:scale-95"
             >
               {isGenerating ? <i className="fa-solid fa-gear animate-spin"></i> : <i className="fa-solid fa-play"></i>}
-              {isGenerating ? 'Sintetizando...' : 'Gerar Animação'}
+              {!isUnlocked ? 'Aguardando Chave' : (isGenerating ? 'Sintetizando...' : 'Gerar Animação')}
             </button>
           </div>
         </div>
 
         {/* Painel Direito: Resultado */}
         <div className="lg:col-span-5 flex flex-col justify-center">
-          <div className={`aspect-video rounded-3xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center relative ${aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[550px] mx-auto' : ''}`}>
+          <div className={`aspect-video rounded-3xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center relative`}>
             {videoUrl ? (
               <video 
                 src={videoUrl} 
@@ -246,10 +254,10 @@ const VideoGenerator: React.FC = () => {
             ) : isGenerating ? (
               <div className="text-center p-8">
                 <div className="mb-6 flex justify-center">
-                   <div className="w-16 h-16 relative">
-                      <div className="absolute inset-0 border-4 border-ecog-folha/20 rounded-full"></div>
-                      <div className="absolute inset-0 border-4 border-t-ecog-folha rounded-full animate-spin"></div>
-                   </div>
+                    <div className="w-16 h-16 relative">
+                       <div className="absolute inset-0 border-4 border-ecog-folha/20 rounded-full"></div>
+                       <div className="absolute inset-0 border-4 border-t-ecog-folha rounded-full animate-spin"></div>
+                    </div>
                 </div>
                 <p className="text-white font-black text-[10px] uppercase tracking-[0.3em] mb-2 animate-pulse">{status}</p>
               </div>
