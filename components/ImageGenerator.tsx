@@ -26,7 +26,9 @@ const ImageGenerator: React.FC = () => {
       // Link para documentação de faturamento conforme instrução
       const billingDocUrl = "https://ai.google.dev/gemini-api/docs/billing";
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Pegando a chave do jeito certo para o Vite/Vercel
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+const ai = new GoogleGenerativeAI(apiKey);
       
       setStatus('Mapeando conceitos estéticos...');
 
