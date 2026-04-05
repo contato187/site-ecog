@@ -2,65 +2,50 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
  * SERVIÇO NEUROMENTOR AI - CLÍNICA ECOG
- * Versão robusta e otimizada para o modelo Gemini 1.5 Flash
+ * Versão Blindada contra Erro 404
  */
 
-// Puxando a chave de API da Vercel (VITE_ é obrigatório para o Vite ler)
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-
-// Só cria a instância se a chave existir para evitar erros fatais na inicialização
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 export const getEducationalAdvice = async (query: string) => {
   try {
-    // 1. Verificação de segurança da chave
     if (!genAI || !apiKey) {
-      console.warn("NeuroMentor: Chave de API não encontrada ou inválida.");
-      return "O sistema educativo está em manutenção técnica momentânea. Por favor, entre em contato com a ECOG pelo WhatsApp para orientações diretas.";
+      console.warn("NeuroMentor: Chave de API ausente.");
+      return "O sistema educativo está em manutenção técnica. Por favor, verifique a chave na Vercel.";
     }
 
-    // 2. Seleção do Modelo Estável (1.5 Flash é o ideal para sites rápidos)
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: `Você é o "NeuroMentor AI", o assistente de inteligência artificial da ECOG - Neuromodulação e Cognição em Londrina.
-        
-        SUA MISSÃO: Atuar na Área Educativa do site para ensinar pacientes e familiares sobre neurociência de forma clara, empática e científica.
-        
-        DIRETRIZES DE RESPOSTA:
-        1. Tom de Voz: Professor atencioso, altamente científico, ético e empático.
-        2. Foco: TMS (EMT), tDCS, Neurofeedback e Realidade Virtual aplicada à saúde cerebral.
-        3. Ética: Nunca realize diagnósticos ou prescrições. Recomende sempre consulta com o Dr. Breno ou especialistas da ECOG.
-        4. Disclaimer: Sempre mencione que as informações são educativas e não substituem o aconselhamento médico.
-        5. Formatação: Use negrito para destacar conceitos técnicos. Responda em Português do Brasil de forma concisa.`,
-    });
+    // Usamos o modelo 1.5-flash-latest que é o mais compatível
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
-    // 3. Execução da consulta com timeout/segurança
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: query }] }],
-      generationConfig: {
-        maxOutputTokens: 500,
-        temperature: 0.7,
-      },
-    });
+    // Colocamos as instruções de sistema DIRETO no prompt para evitar o erro 404
+    const systemInstruction = `Você é o "NeuroMentor AI" da ECOG em Londrina. 
+    Responda como um professor atencioso e científico. 
+    Foco em TMS, tDCS e Neurofeedback. 
+    NUNCA faça diagnósticos. Recomende o Dr. Breno. 
+    Use negrito em termos técnicos. 
+    Sempre diga que a info é educativa.`;
 
-    // 4. Extração segura do texto
+    const prompt = `${systemInstruction}\n\nPergunta do Paciente: ${query}`;
+
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    if (!text) {
-      throw new Error("O modelo retornou uma resposta vazia.");
-    }
+    if (!text) throw new Error("Resposta vazia.");
 
     return text;
 
   } catch (error: any) {
-    console.error("Erro crítico no NeuroMentor AI:", error);
+    console.error("Erro crítico no NeuroMentor:", error);
     
-    // Tratamento de erros comuns para o usuário
-    if (error.message?.includes("API key not found")) {
-      return "Erro de configuração: Chave de acesso não detectada. Por favor, verifique as configurações na Vercel.";
+    // Fallback: Se o modelo acima falhar, tentamos o 'gemini-pro' que é o mais antigo e estável
+    try {
+        const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const fallbackResult = await fallbackModel.generateContent(query);
+        return fallbackResult.response.text();
+    } catch (e) {
+        return "Tive um pequeno lapso neural. Por favor, tente novamente em instantes.";
     }
-    
-    return "Tive um pequeno lapso neural ao processar sua dúvida. Pode repetir a pergunta, por favor?";
   }
 };
