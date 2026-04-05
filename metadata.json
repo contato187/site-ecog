@@ -1,0 +1,7 @@
+{
+  "name": "Copy of ECOG - Neuromodulação e Cognição",
+  "description": "Centro especializado em neuromodulação clínica e aprimoramento cognitivo, focado em transformação, inovação e saúde cerebral.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
