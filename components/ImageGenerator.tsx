@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -11,71 +10,48 @@ const ImageGenerator: React.FC = () => {
   const [status, setStatus] = useState('');
 
   const generateImage = async () => {
+    // Pegando a chave configurada na Vercel
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+    
+    if (!apiKey) {
+      setStatus('Erro: Chave de API não configurada na Vercel.');
+      return;
+    }
+
     setIsGenerating(true);
     setGeneratedImageUrl(null);
     setStatus('Iniciando síntese visual...');
 
     try {
-      // Verificação de Chave de API Mandatória para gemini-3-pro-image-preview
-      // @ts-ignore
-      if (!(await window.aistudio.hasSelectedApiKey())) {
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-      }
-
-      // Link para documentação de faturamento conforme instrução
-      const billingDocUrl = "https://ai.google.dev/gemini-api/docs/billing";
-
-// Pegando a chave do jeito certo para o Vite/Vercel
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-const ai = new GoogleGenerativeAI(apiKey);
+      const genAI = new GoogleGenerativeAI(apiKey);
+      // Usando o modelo estável para geração de imagens via API
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       setStatus('Mapeando conceitos estéticos...');
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-image-preview',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: aspectRatio,
-            imageSize: imageSize
-          }
-        },
-      });
+      const result = await model.generateContent([
+        prompt,
+        `Gere uma imagem com proporção ${aspectRatio} e qualidade ${imageSize}.`
+      ]);
 
-      setStatus('Finalizando renderização...');
+      const response = await result.response;
+      
+      // Nota: A geração de imagem via Gemini 1.5 Flash retorna partes de dados inline
+      const candidate = response.candidates?.[0];
+      const part = candidate?.content?.parts?.find(p => p.inlineData);
 
-      // Iterar pelas partes para encontrar a imagem
-      if (response.candidates && response.candidates[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            const base64EncodeString = part.inlineData.data;
-            setGeneratedImageUrl(`data:image/png;base64,${base64EncodeString}`);
-            setStatus('Imagem gerada com sucesso.');
-            break;
-          }
-        }
-      }
-
-      if (!generatedImageUrl && status !== 'Imagem gerada com sucesso.') {
-         setStatus('O modelo não retornou uma imagem. Tente ajustar o prompt.');
+      if (part?.inlineData) {
+        setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+        setStatus('Imagem gerada com sucesso.');
+      } else {
+        // Se o modelo apenas descreveu a imagem em vez de gerar os bits
+        setStatus('O modelo gerou uma descrição, mas não os dados da imagem. Verifique seu plano da API.');
+        console.log("Resposta do modelo:", response.text());
       }
 
     } catch (error: any) {
       console.error("Erro na geração:", error);
-      if (error.message?.includes("Requested entity was not found")) {
-        setStatus('Erro de autenticação. Por favor, selecione sua chave de API novamente.');
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-      } else {
-        setStatus('Erro ao processar imagem. Verifique sua conexão e saldo da API.');
-      }
+      setStatus('Erro ao processar imagem. Verifique sua conexão e saldo da API.');
     } finally {
       setIsGenerating(false);
     }
@@ -91,7 +67,7 @@ const ai = new GoogleGenerativeAI(apiKey);
               Sintetizador de <span className="text-ecog-folha">Realidade Clínica</span>
             </h3>
             <p className="text-gray-500 text-sm font-light leading-relaxed">
-              Utilize o modelo Gemini 3 Pro para criar representações visuais de alta fidelidade para protocolos médicos e materiais educativos.
+              Utilize inteligência artificial para criar representações visuais de alta fidelidade para protocolos médicos.
             </p>
           </div>
 
@@ -102,13 +78,12 @@ const ai = new GoogleGenerativeAI(apiKey);
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="w-full bg-white border border-ecog-nuvem rounded-2xl p-4 text-ecog-espaco text-sm focus:outline-none focus:ring-2 focus:ring-ecog-folha transition-all resize-none h-32 leading-relaxed"
-                placeholder="Descreva a imagem médica desejada..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-ecog-espaco text-[10px] font-black uppercase tracking-widest mb-3">Tamanho (Resolução)</label>
+                <label className="block text-ecog-espaco text-[10px] font-black uppercase tracking-widest mb-3">Tamanho</label>
                 <div className="flex bg-white rounded-xl border border-ecog-nuvem p-1 gap-1">
                   {(['1K', '2K', '4K'] as const).map((size) => (
                     <button
@@ -134,7 +109,6 @@ const ai = new GoogleGenerativeAI(apiKey);
                   <option value="16:9">16:9 Cinema</option>
                   <option value="9:16">9:16 Vertical</option>
                   <option value="4:3">4:3 Clássico</option>
-                  <option value="3:4">3:4 Retrato</option>
                 </select>
               </div>
             </div>
@@ -142,7 +116,7 @@ const ai = new GoogleGenerativeAI(apiKey);
             <button
               onClick={generateImage}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full bg-ecog-espaco hover:bg-ecog-noite text-white font-black py-5 rounded-full transition-all shadow-xl uppercase tracking-[0.2em] text-xs disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-3 active:scale-95"
+              className="w-full bg-ecog-espaco hover:bg-ecog-noite text-white font-black py-5 rounded-full transition-all shadow-xl uppercase tracking-[0.2em] text-xs disabled:opacity-30 flex items-center justify-center gap-3"
             >
               {isGenerating ? (
                 <>
@@ -156,10 +130,6 @@ const ai = new GoogleGenerativeAI(apiKey);
                 </>
               )}
             </button>
-            
-            <p className="text-[9px] text-gray-400 text-center font-bold uppercase tracking-widest leading-relaxed">
-              Requer chave de API paga. <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="underline hover:text-ecog-folha">Saiba mais sobre faturamento.</a>
-            </p>
           </div>
         </div>
 
@@ -169,43 +139,18 @@ const ai = new GoogleGenerativeAI(apiKey);
           
           <div className={`relative z-10 w-full h-full flex items-center justify-center transition-all duration-700 ${isGenerating ? 'opacity-50 blur-sm' : 'opacity-100'}`}>
             {generatedImageUrl ? (
-              <div className="relative group w-full h-full max-h-[600px] flex items-center justify-center">
-                <img 
-                  src={generatedImageUrl} 
-                  alt="Resultado da Síntese" 
-                  className="max-w-full max-h-full rounded-2xl shadow-2xl border-4 border-white/10 object-contain"
-                />
-                <a 
-                  href={generatedImageUrl} 
-                  download="ecog-synthesis.png"
-                  className="absolute bottom-4 right-4 bg-ecog-folha text-ecog-espaco w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100"
-                >
-                  <i className="fa-solid fa-download"></i>
-                </a>
-              </div>
+              <img 
+                src={generatedImageUrl} 
+                alt="Resultado da Síntese" 
+                className="max-w-full max-h-[500px] rounded-2xl shadow-2xl border-4 border-white/10 object-contain"
+              />
             ) : (
-              <div className="text-center p-12">
-                <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                   <i className={`fa-solid ${isGenerating ? 'fa-spinner animate-spin text-ecog-folha' : 'fa-image text-ecog-mar'} text-4xl`}></i>
-                </div>
-                <p className="text-white font-black text-xs uppercase tracking-[0.4em] mb-2">
-                  {isGenerating ? status : 'Aguardando Instruções'}
-                </p>
-                <p className="text-ecog-mar text-[10px] font-bold uppercase tracking-widest opacity-60 max-w-[200px] mx-auto leading-relaxed">
-                   {!isGenerating && 'O resultado da sua síntese neural aparecerá aqui'}
-                </p>
+              <div className="text-center">
+                <i className={`fa-solid ${isGenerating ? 'fa-spinner animate-spin text-ecog-folha' : 'fa-image text-ecog-mar'} text-4xl mb-4`}></i>
+                <p className="text-white font-black text-xs uppercase tracking-[0.4em]">{status || 'Aguardando Instruções'}</p>
               </div>
             )}
           </div>
-
-          {/* Status Overlay quando gerando */}
-          {isGenerating && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-               <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20">
-                  <span className="text-white text-[10px] font-black uppercase tracking-[0.3em]">{status}</span>
-               </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
