@@ -1,33 +1,38 @@
-import { GoogleGenerativeAI } from "@google/genai";
-
-// O Vite exige 'import.meta.env' e o prefixo 'VITE_' para enxergar a chave
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
- * NeuroMentor AI - Serviço de Suporte Educativo (Gemini 3 Flash)
- * Focado em explicações profundas, científicas e acolhedoras sobre neuromodulação.
+ * NeuroMentor AI - ECOG
+ * Configuração robusta para evitar tela branca na Vercel
  */
+
+// Tentamos pegar a chave da Vercel. Se não encontrar, deixamos vazio em vez de dar erro.
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+
+// Só criamos a instância se a chave existir, evitando o erro "API Key must be set"
+let genAI: any = null;
+if (apiKey) {
+    genAI = new GoogleGenerativeAI(apiKey);
+}
+
 export const getEducationalAdvice = async (query: string) => {
   try {
-    // Verificação de segurança para não travar o site se a chave falhar
-    if (!apiKey) {
-      console.warn("API Key não configurada. O chat ficará desativado.");
-      return "O assistente está em manutenção técnica. Por favor, entre em contato conosco pelo WhatsApp.";
+    if (!genAI) {
+      console.warn("NeuroMentor: API Key não detectada.");
+      return "O assistente está em modo de leitura. Para dúvidas específicas, entre em contato pelo WhatsApp.";
     }
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3-flash", // Versão estável e rápida
-      systemInstruction: `Você é o "NeuroMentor AI", o assistente de inteligência artificial da ECOG - Neuromodulação e Cognição.
+      model: "gemini-1.5-flash", // Modelo atualizado e super rápido
+      systemInstruction: `Você é o "NeuroMentor AI", o assistente de inteligência artificial da ECOG - Neuromodulação e Cognição em Londrina.
         
-        SUA MISSÃO: Atuar na Área Educativa do site para ensinar pacientes e familiares sobre neurociência.
+        SUA MISSÃO: Ensinar pacientes e familiares sobre neurociência e tratamentos.
         
         DIRETRIZES:
-        1. Tom de Voz: Professor atencioso, altamente científico, ético e empático.
-        2. Conhecimento: Especialista em TMS (EMT), tDCS, Neurofeedback e Realidade Virtual aplicada à saúde cerebral.
-        3. Ética Médica: Nunca realize diagnósticos ou prescrições. Recomende sempre consulta com especialistas da ECOG.
-        4. Disclaimer: Sempre mencione que as informações são educativas e não substituem o aconselhamento médico.
-        5. Formatação: Use negrito para destacar conceitos técnicos. Responda em Português do Brasil.`,
+        1. Tom de Voz: Professor atencioso, científico e empático.
+        2. Especialidade: TMS (EMT), tDCS, Neurofeedback e Realidade Virtual.
+        3. Ética: Nunca faça diagnósticos. Recomende sempre os especialistas da ECOG.
+        4. Disclaimer: Informe que as respostas são educativas.
+        5. Formatação: Use negrito para termos técnicos.`,
     });
 
     const result = await model.generateContent(query);
@@ -35,7 +40,7 @@ export const getEducationalAdvice = async (query: string) => {
     return response.text();
 
   } catch (error) {
-    console.error("Erro no NeuroMentor AI:", error);
-    return "Desculpe, tive uma pequena instabilidade neural ao processar sua dúvida. Pode repetir?";
+    console.error("Erro no NeuroMentor:", error);
+    return "Tive um pequeno lapso neural. Poderia repetir a pergunta?";
   }
 };
