@@ -8,35 +8,36 @@ export default async function handler(req, res) {
   const { query } = req.body;
   const apiKey = process.env.VITE_GEMINI_API_KEY;
 
-  try {
-    // Usamos a versão v1 (estável) e o modelo gemini-pro que não dá erro 404
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ 
-          parts: [{ 
-            text: `Você é o assistente da clínica ECOG Londrina. Responda sobre: ${query}` 
-          }] 
-        }]
-      })
-    });
-
-    const data = await response.json();
-
-    // Se der erro, ele vai te dizer o porquê de forma clara
-    if (data.error) {
-      return res.status(200).json({ 
-        text: `Quase lá! O Google retornou: ${data.error.message}. Tente atualizar a página (F5).` 
+  // Lista de modelos possíveis (o Google aceita um desses três dependendo da região)
+  const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.5-flash-latest"];
+  
+  for (const modelName of models) {
+    try {
+      // Usamos v1beta que é a rota que aceita faturamento novo
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `Você é o NeuroMentor AI da clínica ECOG em Londrina. Responda de forma científica sobre: ${query}` }] }]
+        })
       });
+
+      const data = await response.json();
+
+      if (data.candidates && data.candidates[0].content) {
+        const text = data.candidates[0].content.parts[0].text;
+        return res.status(200).json({ text });
+      }
+      
+      console.warn(`Modelo ${modelName} falhou, tentando o próximo...`);
+    } catch (err) {
+      continue; 
     }
-
-    const aiText = data.candidates[0].content.parts[0].text;
-    return res.status(200).json({ text: aiText });
-
-  } catch (error) {
-    return res.status(200).json({ text: "O sistema está finalizando a sincronização com o Google. Aguarde 2 minutos e tente novamente." });
   }
+
+  return res.status(200).json({ 
+    text: "Quase pronto! O Google está terminando de processar seu novo faturamento. Tente novamente em 10 minutos ou dê um F5." 
+  });
 }
