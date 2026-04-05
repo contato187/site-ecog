@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const ImageGenerator: React.FC = () => {
   const [prompt, setPrompt] = useState('Dr. Breno, um médico negro de barba, realizando um procedimento de Estimulação Magnética Transcraniana (TMS) em um paciente sereno em uma poltrona de couro preta. Ambiente de clínica de luxo moderna com iluminação suave, equipamento MagVenture R20 azul e branco com bobina posicionada no topo da cabeça. Realismo fotográfico, cinematic lighting, 8k resolution.');
