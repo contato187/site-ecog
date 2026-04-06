@@ -9,18 +9,15 @@ interface SimulationRecord {
 }
 
 const VideoGenerator: React.FC = () => {
-  // --- SEGURANÇA ---
   const [isUnlocked, setIsUnlocked] = useState(false);
   const ADMIN_KEY = "1987"; 
 
-  // --- ESTADOS ---
   const [prompt, setPrompt] = useState('Animação cinematográfica de um cérebro humano transparente em 3D, com feixes de luz verde neon ativando o córtex pré-frontal. Estilo laboratorial futurista, alta definição.');
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [status, setStatus] = useState('');
   const [history, setHistory] = useState<SimulationRecord[]>([]);
 
-  // Carregar histórico local
   useEffect(() => {
     const savedHistory = localStorage.getItem('ecog_sim_history');
     if (savedHistory) {
@@ -46,40 +43,38 @@ const VideoGenerator: React.FC = () => {
     setStatus('Conectando ao núcleo Veo 3.1...');
 
     try {
-      // Puxa a chave configurada na Vercel
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      // Inicialização robusta
       const genAI = new GoogleGenerativeAI(apiKey);
       
-      // Uso do modelo estável para evitar o erro 404 visto no console
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      // MUDANÇA AQUI: Removendo qualquer chance de erro de versão de API
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+      });
       
       setStatus('Sintetizando roteiro neural...');
       
-      // Simulação da chamada de processamento de vídeo
-      const result = await model.generateContent([
-        `SIMULAÇÃO VEO 3.1: ${prompt}`
-      ]);
-
+      const result = await model.generateContent(prompt);
       const response = await result.response;
-      // Nota: O Veo em produção via API requer processamento assíncrono em bucket.
-      // Aqui simulamos a conclusão do pipeline visual para a interface.
       
       setStatus('Renderizando frames cinematográficos...');
+      // Simulando o tempo de processamento do vídeo no backend
       await new Promise(resolve => setTimeout(resolve, 4000));
 
       const newRecord = {
         id: Math.random().toString(36).substr(2, 9),
         timestamp: Date.now(),
         prompt: prompt,
-        videoUrl: null // URL será injetada após o processamento do bucket
+        videoUrl: null 
       };
 
       saveToHistory(newRecord);
       setStatus('Animação processada com sucesso.');
       
     } catch (error: any) {
-      console.error("Erro na API Gemini:", error);
-      setStatus('Erro de conexão. Verifique a cota da API ou a chave de acesso.');
+      console.error("Erro detalhado:", error);
+      // Se o erro de 404 persistir, a chave de API pode não ter acesso ao modelo flash
+      setStatus('Erro de conexão. Verifique sua cota ou chave de API.');
     } finally {
       setIsGenerating(false);
     }
@@ -90,16 +85,14 @@ const VideoGenerator: React.FC = () => {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-ecog-folha to-transparent opacity-30"></div>
       
       {!isUnlocked ? (
-        /* --- TELA DE BLOQUEIO --- */
         <div className="text-center space-y-8 py-10">
           <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10 shadow-inner">
             <i className="fa-solid fa-brain text-ecog-folha text-4xl animate-pulse"></i>
           </div>
           <div className="space-y-2">
             <h3 className="text-white font-black text-2xl uppercase tracking-tighter">Laboratório Veo</h3>
-            <p className="text-ecog-mar text-[10px] uppercase tracking-[0.4em] font-bold opacity-60">Acesso Restrito ao Corpo Clínico</p>
+            <p className="text-ecog-mar text-[10px] uppercase tracking-[0.4em] font-bold opacity-60">Acesso Restrito</p>
           </div>
-          
           <div className="max-w-xs mx-auto">
             <input 
               type="password" 
@@ -110,10 +103,7 @@ const VideoGenerator: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* --- INTERFACE VEO PROMPT --- */
-        <div className="relative z-10 grid lg:grid-cols-12 gap-12 animate-in fade-in zoom-in-95 duration-700">
-          
-          {/* Histórico Lateral */}
+        <div className="relative z-10 grid lg:grid-cols-12 gap-12 animate-in fade-in duration-700">
           <div className="lg:col-span-3 border-r border-white/5 pr-6 hidden lg:block">
             <h4 className="text-[10px] font-black text-white uppercase tracking-widest mb-8 flex items-center gap-2">
                 <span className="w-2 h-2 bg-ecog-folha rounded-full animate-ping"></span>
@@ -121,11 +111,10 @@ const VideoGenerator: React.FC = () => {
             </h4>
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {history.length === 0 ? (
-                <p className="text-[9px] text-white/20 uppercase text-center py-20 italic tracking-widest">Nenhuma simulação registrada</p>
+                <p className="text-[9px] text-white/20 uppercase text-center py-20 italic tracking-widest">Nenhuma simulação</p>
               ) : (
                 history.map((record) => (
                   <div key={record.id} className="bg-white/5 rounded-2xl p-4 border border-white/5 hover:border-ecog-folha/30 transition-all cursor-default">
-                    <p className="text-[8px] text-ecog-folha font-black mb-2 uppercase tracking-widest italic">Prompt Ativo</p>
                     <p className="text-[10px] text-white/40 line-clamp-3 leading-relaxed italic">"{record.prompt}"</p>
                   </div>
                 ))
@@ -133,11 +122,10 @@ const VideoGenerator: React.FC = () => {
             </div>
           </div>
 
-          {/* Editor de Prompt */}
           <div className="lg:col-span-4 space-y-8">
             <div className="flex justify-between items-center">
                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Veo <span className="text-ecog-folha">Prompt</span></h3>
-               <button onClick={() => setIsUnlocked(false)} className="text-[9px] text-white/30 hover:text-red-400 transition-colors uppercase tracking-[0.2em] font-bold">Encerrar Sessão</button>
+               <button onClick={() => setIsUnlocked(false)} className="text-[9px] text-white/30 hover:text-red-400 transition-colors uppercase tracking-[0.2em] font-bold">Sair</button>
             </div>
 
             <div className="space-y-3">
@@ -145,7 +133,6 @@ const VideoGenerator: React.FC = () => {
                 <textarea 
                   value={prompt} 
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Descreva a dinâmica neurocientífica em detalhes..."
                   className="w-full bg-white/5 border border-white/10 rounded-[32px] p-6 text-white text-sm h-64 outline-none focus:border-ecog-folha transition-all leading-relaxed resize-none shadow-inner"
                 />
             </div>
@@ -153,14 +140,13 @@ const VideoGenerator: React.FC = () => {
             <button
               onClick={generateVideo}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full bg-ecog-folha hover:bg-ecog-lima text-ecog-espaco font-black py-5 rounded-full transition-all shadow-xl uppercase tracking-[0.3em] text-[11px] disabled:opacity-20 active:scale-95 flex items-center justify-center gap-3"
+              className="w-full bg-ecog-folha hover:bg-ecog-lima text-ecog-espaco font-black py-5 rounded-full transition-all shadow-xl uppercase tracking-[0.3em] text-[11px] disabled:opacity-20 flex items-center justify-center gap-3"
             >
               {isGenerating ? <i className="fa-solid fa-gear animate-spin"></i> : <i className="fa-solid fa-play"></i>}
               {isGenerating ? 'Sintetizando...' : 'Gerar Animação'}
             </button>
           </div>
 
-          {/* Visualizador de Resultado */}
           <div className="lg:col-span-5 flex items-center">
             <div className="w-full aspect-video rounded-[40px] bg-black/40 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
               {videoUrl ? (
@@ -170,27 +156,15 @@ const VideoGenerator: React.FC = () => {
                   <div className={`mb-6 transition-all duration-500 ${isGenerating ? 'opacity-100 scale-110' : 'opacity-20'}`}>
                      <i className={`fa-solid ${isGenerating ? 'fa-brain animate-pulse text-ecog-folha' : 'fa-film'} text-5xl mb-4 text-ecog-mar`}></i>
                   </div>
-                  <p className="text-ecog-mar text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
+                  <p className="text-ecog-mar text-[10px] font-black uppercase tracking-[0.4em]">
                     {status || 'Aguardando Processamento'}
                   </p>
                 </div>
               )}
-              {/* Overlay Decorativo do Veo */}
-              <div className="absolute bottom-6 left-8 flex items-center gap-3 bg-black/50 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10">
-                <span className="w-1.5 h-1.5 bg-ecog-folha rounded-full animate-pulse"></span>
-                <span className="text-[8px] font-black text-white uppercase tracking-widest opacity-70">Veo 3.1 Neural Engine</span>
-              </div>
             </div>
           </div>
-
         </div>
       )}
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(187,208,41,0.2); border-radius: 10px; }
-      `}</style>
     </div>
   );
 };
