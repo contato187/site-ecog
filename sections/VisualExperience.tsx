@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import VideoGenerator from '../components/VideoGenerator';
 
@@ -40,24 +39,32 @@ const VisualExperience: React.FC = () => {
              </div>
           </div>
         ) : (
-          /* Galeria de Exemplos Estáticos para o Público */
+          /* Galeria de Cards com Vídeos Reais */
           <div className="grid md:grid-cols-3 gap-8 animate-in fade-in duration-1000">
-             {/* Simulação 01 */}
-             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-white/5">
-                <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco via-transparent to-transparent z-10"></div>
+             
+             {/* Simulação 01 - TMS (Vídeo Imgur Ajustado para esconder TCOG) */}
+             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl">
+                {/* Container de vídeo com offset superior para ocultar erro da IA */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
+                  <video 
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline
+                    className="w-full h-full object-cover scale-125 origin-bottom opacity-60 group-hover:opacity-100 transition-all duration-700"
+                  >
+                    <source src="https://i.imgur.com/o2GVnvt.mp4" type="video/mp4" />
+                  </video>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco via-ecog-espaco/20 to-transparent z-10"></div>
                 <div className="absolute bottom-8 left-8 z-20">
                    <span className="text-ecog-folha text-[9px] font-black uppercase tracking-widest mb-2 block">Simulação 01</span>
-                   <h4 className="text-white font-bold text-xl">Dinâmica de Pulso Magnético</h4>
-                </div>
-                <div className="w-full h-full flex items-center justify-center text-ecog-mar/20 italic">
-                   <i className="fa-solid fa-play text-5xl opacity-20 group-hover:scale-110 transition-transform"></i>
+                   <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Dinâmica de Pulso Magnético</h4>
                 </div>
              </div>
 
-             {/* Simulação 02 - Realidade Virtual (Vídeo Vertical Ajustado com Blurred Backdrop) */}
+             {/* Simulação 02 - Realidade Virtual (Nesplora Mimetizada) */}
              <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-ecog-folha/40 bg-black shadow-[0_0_40px_rgba(187,208,41,0.25)]">
-                
-                {/* Camada de Fundo (Blurred) para preencher o slot */}
                 <video 
                   autoPlay 
                   muted 
@@ -67,8 +74,6 @@ const VisualExperience: React.FC = () => {
                 >
                   <source src="https://i.imgur.com/c471wof.mp4" type="video/mp4" />
                 </video>
-
-                {/* Camada Principal (Full Size) sem cortes */}
                 <video 
                   autoPlay 
                   muted 
@@ -77,29 +82,23 @@ const VisualExperience: React.FC = () => {
                   className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]"
                 >
                   <source src="https://i.imgur.com/c471wof.mp4" type="video/mp4" />
-                  Seu navegador não suporta a visualização deste vídeo.
                 </video>
-
-                {/* Overlay de gradiente suave mantido para profundidade */}
                 <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco/40 via-transparent to-transparent z-20 pointer-events-none"></div>
-                
-                {/* Indicador de status discreto */}
-                <div className="absolute top-6 right-6 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <span className="bg-ecog-folha/20 backdrop-blur-md border border-ecog-folha/30 text-ecog-folha text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                      Live Preview
-                   </span>
+                <div className="absolute bottom-8 left-8 z-30">
+                   <span className="text-ecog-folha text-[9px] font-black uppercase tracking-widest mb-2 block">Simulação 02</span>
+                   <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Avaliação em VR (Nesplora)</h4>
                 </div>
              </div>
 
-             {/* Simulação 03 */}
+             {/* Simulação 03 - Redes Neurais (Aguardando seu vídeo do Studio) */}
              <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-white/5">
                 <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco via-transparent to-transparent z-10"></div>
                 <div className="absolute bottom-8 left-8 z-20">
                    <span className="text-ecog-folha text-[9px] font-black uppercase tracking-widest mb-2 block">Simulação 03</span>
-                   <h4 className="text-white font-bold text-xl">Mapeamento de Redes Neurais</h4>
+                   <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Mapeamento de Redes Neurais</h4>
                 </div>
                 <div className="w-full h-full flex items-center justify-center text-ecog-mar/20 italic">
-                   <i className="fa-solid fa-play text-5xl opacity-20 group-hover:scale-110 transition-transform"></i>
+                   <i className="fa-solid fa-dna text-5xl opacity-20 group-hover:scale-110 transition-transform"></i>
                 </div>
              </div>
           </div>
