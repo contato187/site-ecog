@@ -39,12 +39,12 @@ const VisualExperience: React.FC = () => {
              </div>
           </div>
         ) : (
-          /* Galeria de Cards de Simulação */
+          /* Galeria Restaurada: Sem altura fixa para evitar sobreposição */
           <div className="grid md:grid-cols-3 gap-8 animate-in fade-in duration-1000">
              
              {/* Simulação 01 - TMS */}
-             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl h-[250px]">
-                <div className="absolute inset-0 w-full h-full">
+             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl">
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
                   <video 
                     autoPlay muted loop playsInline disablePictureInPicture
                     className="w-full h-full object-cover scale-125 origin-bottom opacity-60 group-hover:opacity-100 transition-all duration-700"
@@ -60,7 +60,7 @@ const VisualExperience: React.FC = () => {
              </div>
 
              {/* Simulação 02 - VR (Avaliação Cognitiva) */}
-             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-ecog-folha/40 bg-black shadow-[0_0_40px_rgba(187,208,41,0.25)] h-[250px]">
+             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-ecog-folha/40 bg-black shadow-[0_0_40px_rgba(187,208,41,0.25)]">
                 <video 
                   autoPlay muted loop playsInline disablePictureInPicture
                   className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700"
@@ -74,9 +74,9 @@ const VisualExperience: React.FC = () => {
                 </div>
              </div>
 
-             {/* Simulação 03 - Redes Neurais (NOVO VÍDEO ATUALIZADO) */}
-             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl h-[250px]">
-                <div className="absolute inset-0 w-full h-full">
+             {/* Simulação 03 - Redes Neurais */}
+             <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl">
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
                   <video 
                     autoPlay muted loop playsInline disablePictureInPicture
                     className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700"
