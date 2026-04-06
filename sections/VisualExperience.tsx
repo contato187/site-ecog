@@ -42,15 +42,11 @@ const VisualExperience: React.FC = () => {
           /* Galeria de Cards com Vídeos Reais */
           <div className="grid md:grid-cols-3 gap-8 animate-in fade-in duration-1000">
              
-             {/* Simulação 01 - TMS (Vídeo Imgur Ajustado para esconder TCOG) */}
+             {/* Card 01 - TMS (Ajustado para esconder o letreiro TCOG) */}
              <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl">
-                {/* Container de vídeo com offset superior para ocultar erro da IA */}
                 <div className="absolute inset-0 w-full h-full overflow-hidden">
                   <video 
-                    autoPlay 
-                    muted 
-                    loop 
-                    playsInline
+                    autoPlay muted loop playsInline
                     className="w-full h-full object-cover scale-125 origin-bottom opacity-60 group-hover:opacity-100 transition-all duration-700"
                   >
                     <source src="https://i.imgur.com/o2GVnvt.mp4" type="video/mp4" />
@@ -63,51 +59,31 @@ const VisualExperience: React.FC = () => {
                 </div>
              </div>
 
-             {/* Simulação 02 - Realidade Virtual (Nesplora Mimetizada) */}
+             {/* Card 02 - Realidade Virtual (SEM TARJAS PRETAS E SEM NESPLORA) */}
              <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-ecog-folha/40 bg-black shadow-[0_0_40px_rgba(187,208,41,0.25)]">
+                {/* Usamos object-cover puro aqui para garantir que o vídeo 
+                   preencha todo o card, eliminando as faixas pretas.
+                */}
                 <video 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover opacity-30 blur-xl scale-110"
+                  autoPlay muted loop playsInline
+                  className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700"
                 >
                   <source src="https://i.imgur.com/c471wof.mp4" type="video/mp4" />
                 </video>
-                <video 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline
-                  className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                >
-                  <source src="https://i.imgur.com/c471wof.mp4" type="video/mp4" />
-                </video>
-                <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco/40 via-transparent to-transparent z-20 pointer-events-none"></div>
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco/60 via-transparent to-transparent z-20 pointer-events-none"></div>
+                
                 <div className="absolute bottom-8 left-8 z-30">
                    <span className="text-ecog-folha text-[9px] font-black uppercase tracking-widest mb-2 block">Simulação 02</span>
-                   <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Avaliação em VR (Nesplora)</h4>
+                   <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Avaliação Neurocognitiva VR</h4>
                 </div>
              </div>
 
-             {/* Simulação 03 - Redes Neurais (Aguardando seu vídeo do Studio) */}
+             {/* Card 03 - Mapeamento de Redes Neurais (Aguardando novo vídeo do Studio) */}
              <div className="group relative aspect-video rounded-[40px] overflow-hidden border border-white/10 bg-white/5">
                 <div className="absolute inset-0 bg-gradient-to-t from-ecog-espaco via-transparent to-transparent z-10"></div>
                 <div className="absolute bottom-8 left-8 z-20">
                    <span className="text-ecog-folha text-[9px] font-black uppercase tracking-widest mb-2 block">Simulação 03</span>
                    <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Mapeamento de Redes Neurais</h4>
                 </div>
-                <div className="w-full h-full flex items-center justify-center text-ecog-mar/20 italic">
-                   <i className="fa-solid fa-dna text-5xl opacity-20 group-hover:scale-110 transition-transform"></i>
-                </div>
-             </div>
-          </div>
-        )}
-      </div>
-
-      <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] border-[1px] border-ecog-folha/10 rounded-full -z-10 animate-pulse-slow"></div>
-    </section>
-  );
-};
-
-export default VisualExperience;
+                <div className="w-full h-full flex items
