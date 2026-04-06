@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Logo from './Logo';
 
@@ -15,19 +14,19 @@ const Footer: React.FC = () => {
               <Logo variant="light" />
             </div>
             <p className="max-w-md text-ecog-mar leading-relaxed font-light mb-10 text-lg">
-              Excelência em neuromodulação clínica e aprimoramento cognitivo. Transformando vidas através da inovação.
+              Excelência em neuromodulação clínica e aprimoramento cognitivo. Transformando vidas através da inovação e rigor científico.
             </p>
             <div className="flex flex-col sm:flex-row gap-8">
                <div>
                   <span className="block text-[10px] font-black uppercase tracking-widest text-ecog-folha mb-3">Responsável Técnico</span>
-                  <span className="text-white font-bold text-sm">Diretoria Médica ECOG</span>
-                  <span className="block text-[10px] text-ecog-ceu mt-1">Conselho Regional de Medicina</span>
+                  <span className="text-white font-bold text-sm block">Dr. Breno Santos</span>
+                  <span className="block text-[10px] text-ecog-ceu mt-1 uppercase font-bold tracking-tighter">CRM-PR 37798</span>
                </div>
                <div className="w-[1px] h-12 bg-white/10 hidden sm:block"></div>
                <div>
-                  <span className="block text-[10px] font-black uppercase tracking-widest text-ecog-folha mb-3">Compliance</span>
-                  <span className="text-white font-bold text-sm">Certificação ANVISA</span>
-                  <span className="block text-[10px] text-ecog-ceu mt-1">Padrão Kandel de Qualidade</span>
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-ecog-folha mb-3">Qualificação Médica</span>
+                  <span className="text-white font-bold text-sm block">Neurologia (RQE 22068)</span>
+                  <span className="text-white font-bold text-sm block">Neurorradiologia (RQE 27948)</span>
                </div>
             </div>
           </div>
@@ -43,25 +42,34 @@ const Footer: React.FC = () => {
           </div>
           
           <div>
-            <h4 className="text-white font-black mb-8 uppercase text-xs tracking-[0.3em]">Jurídico</h4>
-            <ul className="space-y-5 text-sm">
-              <li><a href="#" className="text-ecog-ceu hover:text-ecog-folha transition-colors">Política de Privacidade</a></li>
-              <li><a href="#" className="text-ecog-ceu hover:text-ecog-folha transition-colors">Termos de Uso</a></li>
-              <li><a href="#" className="text-ecog-ceu hover:text-ecog-folha transition-colors">Direitos do Paciente</a></li>
+            <h4 className="text-white font-black mb-8 uppercase text-xs tracking-[0.3em]">Informações</h4>
+            <ul className="space-y-4 text-[11px] leading-relaxed text-ecog-mar/60">
+              <li>
+                <strong className="text-ecog-folha block mb-1">NOTA LEGAL AI</strong>
+                O NeuroMentor AI oferece suporte informativo e educativo. Não realiza diagnósticos nem substitui a consulta médica.
+              </li>
+              <li>
+                <strong className="text-ecog-folha block mb-1">CONFORMIDADE</strong>
+                Em total acordo com as normas do CFM e LGPD para proteção de dados sensíveis.
+              </li>
+              <li className="pt-2 border-t border-white/5 flex flex-col gap-2">
+                <a href="#" className="text-ecog-ceu hover:text-white transition-colors uppercase tracking-widest text-[9px]">Privacidade</a>
+                <a href="#" className="text-ecog-ceu hover:text-white transition-colors uppercase tracking-widest text-[9px]">Direitos do Paciente</a>
+              </li>
             </ul>
           </div>
         </div>
         
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-ecog-ceu/40">
           <p>
-            &copy; {new Date().getFullYear()} ECOG - Neuromodulação e Cognição. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} ECOG Londrina — CRM-PR 37798. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-8">
             <span className="flex items-center gap-2">
                <span className="w-1.5 h-1.5 bg-ecog-folha rounded-full"></span>
                Inovação em Neurociência
             </span>
-            <span className="opacity-40">Desenvolvido com Rigor Científico</span>
+            <span className="opacity-40">Londrina - PR</span>
           </div>
         </div>
       </div>
