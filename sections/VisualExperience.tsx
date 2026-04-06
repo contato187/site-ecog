@@ -86,4 +86,17 @@ const VisualExperience: React.FC = () => {
                    <span className="text-ecog-folha text-[9px] font-black uppercase tracking-widest mb-2 block">Simulação 03</span>
                    <h4 className="text-white font-bold text-xl uppercase tracking-tighter">Mapeamento de Redes Neurais</h4>
                 </div>
-                <div className="w-full h-full flex items
+                <div className="w-full h-full flex items-center justify-center text-ecog-mar/20 italic">
+                   <i className="fa-solid fa-dna text-5xl opacity-20 group-hover:scale-110 transition-transform"></i>
+                </div>
+             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] border-[1px] border-ecog-folha/10 rounded-full -z-10 animate-pulse-slow"></div>
+    </section>
+  );
+};
+
+export default VisualExperience;
