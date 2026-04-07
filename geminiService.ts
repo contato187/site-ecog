@@ -1,6 +1,6 @@
-export const getEducationalAdvice = async (query: string) => {
+export const getEducationalAdvice = async (query: string): Promise<string | null> => {
   try {
-    // Chamamos a nossa própria API interna da Vercel
+    // CORREÇÃO: Chamando a sua rota interna da Vercel em vez da URL direta do Google
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
@@ -9,11 +9,17 @@ export const getEducationalAdvice = async (query: string) => {
       body: JSON.stringify({ query }),
     });
 
+    if (!response.ok) {
+      throw new Error('Falha na comunicação com o servidor local');
+    }
+
     const data = await response.json();
-    return data.text || "Tive um pequeno lapso neural.";
     
+    // O retorno esperado da sua API em /api/chat é { text: "resposta" }
+    return data.text || "O NeuroMentor está processando, tente novamente em instantes.";
+
   } catch (error) {
-    console.error("Erro ao conectar com a API:", error);
-    return "Erro de conexão com o NeuroMentor. Tente novamente.";
+    console.error("Erro no NeuroMentor Service:", error);
+    return "Erro de conexão com o NeuroMentor. Verifique se o servidor está online.";
   }
 };
