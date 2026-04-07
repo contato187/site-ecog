@@ -1,30 +1,22 @@
-
-export interface Procedure {
-  id: string;
-  title: string;
-  description: string;
-  fullDescription: string;
-  benefits: string[];
-  indications: string[];
-  preparation: string[];
-  whatToExpect: string;
-  afterCare: string[];
-  duration: string;
-  icon: string;
-  hasAnvisa: boolean;
-}
-
-export interface Condition {
-  id: string;
-  name: string;
-  summary: string;
-  details: string;
-  treatmentRole: string;
-  category: 'Psiquiatria' | 'Neurologia' | 'Dor Crônica';
-}
-
-export interface SocialLink {
-  platform: string;
-  url: string;
-  icon: string;
+{
+  "name": "ecog---neuromodulação-e-cognição",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react-dom": "^19.2.3",
+    "react": "^19.2.3",
+    "@google/genai": "^1.34.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
 }

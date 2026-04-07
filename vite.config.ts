@@ -1,20 +1,20 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      // Isso diz ao sistema que o símbolo "@" significa a pasta principal
-      '@': path.resolve(__dirname, './'),
-    },
-  },
-  build: {
-    // Garante que o site seja gerado na pasta correta para a Vercel
-    outDir: 'dist',
-  },
-  server: {
-    port: 3000,
-  }
-});
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/152fb3d7-41d8-4a8a-9cf0-98c1ecd3bf21
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
