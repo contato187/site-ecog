@@ -9,36 +9,21 @@ export default async function handler(req, res) {
     const { query } = req.body;
     const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    if (!apiKey) return res.status(200).json({ text: "Erro: Chave de API não configurada." });
-
-    // Vamos usar apenas o modelo que funcionou no seu teste do AI Studio
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `Você é o NeuroMentor AI da clínica ECOG em Londrina. Responda de forma científica sobre: ${query}` }] }]
+        contents: [{ parts: [{ text: `Você é o NeuroMentor AI da clínica ECOG. Responda: ${query}` }] }]
       })
     });
-    
+
     const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "O Google não retornou texto. Verifique o saldo.";
     
-    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-      return res.status(200).json({ text: data.candidates[0].content.parts[0].text });
-    }
-
-    // Se der erro, ele mostra a mensagem real do Google
-    const errorDetail = data.error?.message || "O Google ainda está processando o saldo. Tente em instantes.";
-    return res.status(200).json({ text: "NeuroMentor (Aguardando Google): " + errorDetail });
+    return res.status(200).json({ text });
 
   } catch (err) {
-    return res.status(200).json({ text: "Erro de rede: " + err.message });
-  }
-}
-    // Se nenhum modelo funcionar, mostramos o erro real do Google para depuração
-    const errorMsg = googleResponse?.error?.message || "O Google ainda está processando seu saldo de R$ 69,05. Tente novamente em 20 minutos.";
-    return res.status(200).json({ text: "NeuroMentor online: " + errorMsg });
-
-  } catch (err) {
-    return res.status(200).json({ text: "Erro de processamento: " + err.message });
+    // Se der erro, ele vai escrever o erro no chat em vez de dar 500 no console
+    return res.status(200).json({ text: "Erro na Vercel: " + err.message });
   }
 }
