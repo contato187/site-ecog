@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // Configuração de CORS para permitir que o seu site acesse a API
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,39 +9,52 @@ export default async function handler(req, res) {
   const { query } = req.body;
   const apiKey = process.env.VITE_GEMINI_API_KEY;
 
-  // Atualizei a lista com os modelos que o Google liberou no seu painel pago
-  const models = ["gemini-2.0-flash", "gemini-1.5-flash"];
+  // Lista de modelos que o seu painel do Google Cloud mostrou que têm cota ativa (1K RPM)
+  const models = [
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-exp"
+  ];
   
+  let lastErrorMessage = "";
+
   for (const modelName of models) {
     try {
-      // Mudamos para v1 (estável) e usamos o modelo que funcionou no seu teste
-      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+      // Usamos a rota v1beta para garantir compatibilidade com os modelos mais novos e faturamento pago
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
       
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `Você é o NeuroMentor AI da clínica ECOG em Londrina. Responda de forma científica sobre: ${query}` }] }]
+          contents: [{ 
+            parts: [{ 
+              text: `Você é o NeuroMentor AI da clínica ECOG em Londrina. Responda de forma científica e acolhedora sobre: ${query}` 
+            }] 
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          }
         })
       });
 
       const data = await response.json();
 
-      // Se o Google responder erro de faturamento ou limite, ele pula para o próximo modelo
-      if (data.candidates && data.candidates[0]?.content) {
+      // Se o Google retornar uma resposta válida, enviamos para o site imediatamente
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
         const text = data.candidates[0].content.parts[0].text;
         return res.status(200).json({ text });
       }
-      
-      console.warn(`Modelo ${modelName} falhou:`, data.error?.message || "Sem resposta");
-    } catch (err) {
-      continue; 
-    }
-  }
 
-  // Se chegar aqui, é porque nenhum modelo respondeu. 
-  // Vou mudar a frase para sabermos se o erro ainda é o mesmo.
-  return res.status(200).json({ 
-    text: "O sistema está online, mas o Google ainda está propagando seu saldo. Tente novamente em alguns minutos." 
-  });
-}
+      // Se houver erro de cota ou faturamento, guardamos a mensagem para depuração interna
+      if (data.error) {
+        lastErrorMessage = data.error.message;
+        console.warn(`Modelo ${modelName} falhou: ${lastErrorMessage}`);
+      }
+      
+    } catch (err) {
+      console
