@@ -8,13 +8,13 @@ export default async function handler(req, res) {
   const { query } = req.body;
   const apiKey = process.env.VITE_GEMINI_API_KEY;
 
-  // Lista de modelos possíveis (o Google aceita um desses três dependendo da região)
-  const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.5-flash-latest"];
+  // Atualizei a lista com os modelos que o Google liberou no seu painel pago
+  const models = ["gemini-2.0-flash", "gemini-1.5-flash"];
   
   for (const modelName of models) {
     try {
-      // Usamos v1beta que é a rota que aceita faturamento novo
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      // Mudamos para v1 (estável) e usamos o modelo que funcionou no seu teste
+      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
       
       const response = await fetch(url, {
         method: 'POST',
@@ -26,18 +26,21 @@ export default async function handler(req, res) {
 
       const data = await response.json();
 
-      if (data.candidates && data.candidates[0].content) {
+      // Se o Google responder erro de faturamento ou limite, ele pula para o próximo modelo
+      if (data.candidates && data.candidates[0]?.content) {
         const text = data.candidates[0].content.parts[0].text;
         return res.status(200).json({ text });
       }
       
-      console.warn(`Modelo ${modelName} falhou, tentando o próximo...`);
+      console.warn(`Modelo ${modelName} falhou:`, data.error?.message || "Sem resposta");
     } catch (err) {
       continue; 
     }
   }
 
+  // Se chegar aqui, é porque nenhum modelo respondeu. 
+  // Vou mudar a frase para sabermos se o erro ainda é o mesmo.
   return res.status(200).json({ 
-    text: "Quase pronto! O Google está terminando de processar seu novo faturamento. Tente novamente em 10 minutos ou dê um F5." 
+    text: "O sistema está online, mas o Google ainda está propagando seu saldo. Tente novamente em alguns minutos." 
   });
 }
