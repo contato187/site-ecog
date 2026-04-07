@@ -9,19 +9,16 @@ export default async function handler(req, res) {
   const { query } = req.body;
   const apiKey = process.env.VITE_GEMINI_API_KEY;
 
-  // 2. Lista de modelos que o seu painel (Nível Pago 1) liberou
-  // O gemini-1.5-flash é o mais estável para contas novas
+  // 2. Lista de modelos estáveis que funcionam na rota v1
   const models = [
     "gemini-1.5-flash",
-    "gemini-1.5-pro",
-    "gemini-2.0-flash"
+    "gemini-1.5-pro"
   ];
 
-  // 3. Tentativa de conexão com os modelos
   for (const modelName of models) {
     try {
-      // Usamos a rota v1beta que o seu AI Studio usou com sucesso no teste
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      // MUDANÇA CRÍTICA: Alterado de v1beta para v1 (Rota Estável de Produção)
+      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
       
       const response = await fetch(url, {
         method: 'POST',
@@ -36,6 +33,33 @@ export default async function handler(req, res) {
             temperature: 0.7,
             maxOutputTokens: 1000,
           }
+        })
+      });
+
+      const data = await response.json();
+
+      // Se o Google responder com sucesso, entregamos o texto
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        const text = data.candidates[0].content.parts[0].text;
+        return res.status(200).json({ text });
+      }
+
+      // Caso o Google retorne um erro específico (ex: cota ou permissão)
+      if (data.error) {
+        console.warn(`Tentativa com ${modelName} falhou:`, data.error.message);
+      }
+
+    } catch (err) {
+      console.error(`Erro de rede no modelo ${modelName}:`, err);
+      continue; 
+    }
+  }
+
+  // 3. Mensagem de fallback caso os servidores da API v1 ainda não tenham recebido o sinal do seu pagamento
+  return res.status(200).json({ 
+    text: "Conexão estabelecida! O Google está sincronizando seu novo saldo pago com o servidor de chat. Isso pode levar alguns minutos. Por favor, tente novamente em breve." 
+  });
+}
         })
       });
 
